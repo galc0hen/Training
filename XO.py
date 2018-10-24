@@ -7,6 +7,7 @@ N = 3
 
 
 def print_board(board):
+
     print()
     print('Board:')
     for line_ in board:
