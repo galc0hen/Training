@@ -4,56 +4,60 @@ from collections import namedtuple
 # Size of board.
 N = 3
 
+Player = namedtuple('Player', 'name symbol')
+
 
 class Model:
+    """
+    Handle all operations involving the board of the game.
+    """
+
     def __init__(self):
         self.board = [[None for x in range(N)] for y in range(N)]
 
-    def get_board_status(self):
-        return self.board
-
-    def update_board(self, line, col, players, curr_player):
+    def update_board(self, line, col, curr_player):
         if self.board[line][col] is not None:
             return False
         else:
-            self.board[line][col] = players[curr_player].symbol
+            self.board[line][col] = curr_player
             return True
 
-    def line_won(self, players, curr_player):
+    def line_won(self, curr_player):
         for line in self.board:
-            if all(x == players[curr_player].symbol for x in line):
+            if all(x == curr_player for x in line):
                 return True
         return False
 
-    def col_won(self, players, curr_player):
+    def col_won(self, curr_player):
         for col in range(N):
-            if all(line[col] == players[curr_player].symbol for line in self.board):
+            if all(line[col] == curr_player for line in self.board):
                 return True
         return False
 
-    def diagonal_won(self, players, curr_player):
+    def diagonal_won(self, curr_player):
         # Main diagonal.
-        if all(self.board[index][index] == players[curr_player].symbol for index in range(N)):
+        if all(self.board[index][index] == curr_player for index in range(N)):
             return True
         # Opposite diagonal.
-        if all(self.board[index][N-1-index] == players[curr_player].symbol for index in range(N)):
+        if all(self.board[index][N-1-index] == curr_player for index in range(N)):
             return True
         return False
 
 
 class View:
-    def __init__(self):
-        pass
+    """
+    Present output to user.
+    """
 
-    def print_board(self, board):
+    def print_board(self, players, board):
         print()
         print('Board:')
         for line in board:
-            for item in line:
-                if item is None:
+            for spot in line:
+                if spot is None:
                     print('-', end='')
                 else:
-                    print(item, end='')
+                    print(players[spot].symbol, end='')
             print()
         print()
 
@@ -71,14 +75,17 @@ class View:
 
 
 class Controller:
-    def __init__(self, model, view):
-        self.model = model
-        self.view = view
-        self.players, self.curr_player = self.initiate_players()
+    """
+    Initiate and operate the game to its end, including interaction with the user.
+    """
+
+    def __init__(self):
+        self.model = Model()
+        self.view = View()
+        self.players, self.curr_player = self._initiate_players()
         self.number_of_moves_left = N * N  # Equals to number of squares on board.
 
-    def initiate_players(self):
-        Player = namedtuple('Player', 'name symbol')
+    def _initiate_players(self):
         x_player_name = input('Enter X player name\n')
         o_player_name = input('Enter O player name\n')
         while x_player_name == o_player_name:
@@ -88,21 +95,20 @@ class Controller:
         return players, curr_player
 
     def show_board(self):
-        board = self.model.get_board_status()
-        self.view.print_board(board)
+        self.view.print_board(self.players, self.model.board)
 
-    def get_input(self):
-        line = self.is_input_valid('line')
-        col = self.is_input_valid('column')
-        updated = self.model.update_board(line, col, self.players, self.curr_player)
-        if not updated:
-            print(f'{self.players[self.curr_player].name}, you entered a taken spot on the board, try again')
-            return False
-        return True
+    def next_move(self):
+        while True:
+            line = self.get_valid_input('line')
+            col = self.get_valid_input('column')
+            next_move_finished = self.model.update_board(line, col, self.curr_player)
+            if next_move_finished:
+                break
+            else:
+                print(f'{self.players[self.curr_player].name}, try again (spot is taken)')
 
-    def is_input_valid(self, input_type):
-        valid_input = False
-        while not valid_input:
+    def get_valid_input(self, input_type):
+        while True:
             print(f'{self.players[self.curr_player].name}, please insert the {input_type} number')
             try:
                 input_value = int(input())
@@ -112,22 +118,21 @@ class Controller:
             if input_value < 0 or input_value >= N:
                 print(f'{self.players[self.curr_player].name}, insert a {input_type} num between 0 to {N-1}, including')
             else:
-                valid_input = True
+                break
         return input_value
 
     def switch_player(self):
-        self.curr_player = self.curr_player ^ 1
+        self.curr_player = 1 - self.curr_player  # Flip bit (0/1).
 
-    def is_win(self):
-        if self.model.line_won(self.players, self.curr_player) \
-                or self.model.col_won(self.players, self.curr_player) \
-                or self.model.diagonal_won(self.players, self.curr_player):
+    def game_done(self):
+        # Check if game is won and declare it.
+        if self.model.line_won(self.curr_player) \
+                or self.model.col_won(self.curr_player) \
+                or self.model.diagonal_won(self.curr_player):
             self.view.declare_winner(self.players, self.curr_player)
             self.show_board()
             return True
-        return False
-
-    def is_tie(self):
+        # Check if game is tie and declare it.
         self.number_of_moves_left -= 1
         if self.number_of_moves_left == 0:
             self.view.declare_tie()
@@ -136,22 +141,18 @@ class Controller:
         return False
 
     def main(self):
-        game_won = False
-        game_tie = False
-        while not (game_won or game_tie):
+        game_done = False
+        while not game_done:
             # Print current board status.
-            controller.show_board()
+            self.show_board()
             # Get input for next move.
-            got_input_successfully = controller.get_input()
-            while not got_input_successfully:
-                got_input_successfully = controller.get_input()
-            # Check if player won.
-            game_won = controller.is_win()
-            # Check if tie.
-            game_tie = controller.is_tie()
+            self.next_move()
+            # Check if player won or if game is tie and declare it.
+            game_done = self.game_done()
             # Switch player.
-            controller.switch_player()
+            self.switch_player()
 
 
-controller = Controller(Model(), View())
-controller.main()
+if __name__ == '__main__':
+    controller = Controller()
+    controller.main()
