@@ -43,4 +43,5 @@ def main():
     print(arguments_to_results_map)  # Expecting two items in dict (same as before).
 
 
-main()
+if __name__ == '__main__':
+    main()
