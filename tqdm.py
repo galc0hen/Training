@@ -1,42 +1,53 @@
-from time import sleep
-import datetime as dt
-import sys
+import time
 
 
-def Tqdm(iterable):
+PADDING = f'\t\t'
+
+
+def tqdm(iterable):
     iteration_counter = 1
     total_iterations = len(iterable)
-    start_time = dt.datetime.now()
+    start_time = time.monotonic()
     for obj in iterable:
         # number of iteration
-        sys.stdout.write('\rIteration {} of {}     '.format(iteration_counter, total_iterations))
+        tqdm_string_to_print = f'Iteration {iteration_counter} of {total_iterations}{PADDING}'
 
         # elapsed time
-        datetime_now = dt.datetime.now()
-        curr_duration = datetime_now - start_time
-        sys.stdout.write('elapsed time: {}     '.format(curr_duration))
+        time_now = time.monotonic()
+        curr_duration = time_now - start_time
+        tqdm_string_to_print += f'elapsed time: {curr_duration:.2f} sec {PADDING}'
 
         # iterations per second
-        curr_duration_seconds = curr_duration.total_seconds()
-        if curr_duration_seconds != 0:
-            sys.stdout.write('iterations per second: {:.2f}     '.format(iteration_counter / curr_duration_seconds))
+        if curr_duration != 0:
+            tqdm_string_to_print += f'iterations per second: ' \
+                                    f'{iteration_counter / curr_duration:.2f}{PADDING}'
         else:
-            sys.stdout.write('iterations per second: N/A     ')
+            tqdm_string_to_print += f'iterations per second: N/A{PADDING}'
 
         # Process Completion Percentage
-        sys.stdout.write('Process Completion Percentage: {:.1%}     '.format(iteration_counter / total_iterations))
+        tqdm_string_to_print += f'Process Completion Percentage: {iteration_counter / total_iterations:.1%}{PADDING}'
 
         # progress bar
         progress_bar_full = int((iteration_counter / total_iterations) * 10)
         progress_bar_empty = 10 - progress_bar_full
         progress_bar = '[' + '#' * progress_bar_full + ' ' * progress_bar_empty + ']'
-        sys.stdout.write(progress_bar)
+        tqdm_string_to_print += progress_bar
 
         # wrapping up
-        sys.stdout.flush()
+        print(end='\r')
+        print(tqdm_string_to_print, end='')
         iteration_counter += 1
         yield obj
 
 
-for i in Tqdm(range(3)):
-    sleep(3)
+def main():
+    """
+    Expecting the following string structure:
+    Iteration 5 of 5	elapsed time: 12.00 sec     iterations per second: 0.42    Process Completion Percentage: 100.0%   [##########]
+    """
+    for i in tqdm(range(5)):
+        time.sleep(3)
+
+
+if __name__ == '__main__':
+    main()
