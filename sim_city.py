@@ -67,3 +67,4 @@ synville.build_a_house('second', 1, 1)  # build in neighborhood that doesn't exi
 print(synville.how_much_money())
 synville.ruin_a_neighborhood('first')
 print(synville.how_much_money())
+
