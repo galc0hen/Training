@@ -15,20 +15,25 @@ class City:
         self.base_city_tax *= 1.1
 
     def ruin_a_neighborhood(self, neighborhood_name):
-        if neighborhood_name not in self.neighborhoods:
+        neighborhood = self.neighborhoods.pop(neighborhood_name, None)
+        if neighborhood is None:
+            print(f'{neighborhood_name} neighborhood is not listed.')
             return
-        del self.neighborhoods[neighborhood_name]
         self.base_city_tax *= 1.05
 
     def build_a_house(self, neighborhood_name, family_members, size):
-        if neighborhood_name not in self.neighborhoods:
+        neighborhood = self.neighborhoods.get(neighborhood_name)
+        if not neighborhood:
+            print(f'{neighborhood_name} neighborhood is not listed.')
             return
-        self.neighborhoods[neighborhood_name].add_house(family_members, size)
+        neighborhood.add_house(family_members, size)
 
     def build_a_park(self, neighborhood_name):
-        if neighborhood_name not in self.neighborhoods:
+        neighborhood = self.neighborhoods.get(neighborhood_name)
+        if not neighborhood:
+            print(f'{neighborhood_name} neighborhood is not listed.')
             return
-        self.neighborhoods[neighborhood_name].add_park()
+        neighborhood.add_park()
 
 
 class Neighborhood:
@@ -37,34 +42,43 @@ class Neighborhood:
         self.parks = 0
 
     def how_much_money_neighborhood(self):
-        neighborhood_tax = (self.parks * 5) + (len(self.houses) * 3)  # base tax
-        for family_members, size in self.houses:  # house is a tuple
-            neighborhood_tax += family_members * size
+        neighborhood_tax = (self.parks * 5) + (len(self.houses) * 3)  # base neighborhood tax
+        for house in self.houses:
+            neighborhood_tax += house.how_much_money_house()
         return neighborhood_tax
 
     def add_house(self, family_members, size):
-        self.houses.append((family_members, size))
+        new_house = House(family_members, size)
+        self.houses.append(new_house)
 
     def add_park(self):
         self.parks += 1
 
 
-# tests
-synville = City()
-print(synville.neighborhoods)
-print(synville.how_much_money())
-synville.build_a_neighborhood('first')
-synville.ruin_a_neighborhood('second')  # ruin a neighborhood that doesn't exist
-print(synville.neighborhoods)
-print(synville.how_much_money())
-synville.build_a_house('first', 5, 5)
-synville.build_a_house('first', 10, 10)
-print(synville.how_much_money())
-synville.build_a_park('first')
-print(synville.how_much_money())
-synville.build_a_park('second')  # build in neighborhood that doesn't exist
-synville.build_a_house('second', 1, 1)  # build in neighborhood that doesn't exist
-print(synville.how_much_money())
-synville.ruin_a_neighborhood('first')
-print(synville.how_much_money())
+class House:
+    def __init__(self, family_members, size):
+        self.family_members = family_members
+        self.size = size
 
+    def how_much_money_house(self):
+        return self.family_members * self.size
+        
+
+def main():
+    synville = City()
+    print(f'Synville Tax is (expecting 1000): {synville.how_much_money()}')  # expecting 1000
+    synville.build_a_neighborhood('Florentin')  # no output
+    synville.ruin_a_neighborhood('Tzafon Yashan')  # expecting: "Tzafon Yashan neighborhood is not listed."
+    print(f'Synville Tax is (expecting 1100): {synville.how_much_money()}')  # expecting 1100
+    synville.build_a_house('Florentin', 2, 6)
+    synville.build_a_park('Florentin')
+    print(f'Synville Tax is (expecting 1120): {synville.how_much_money()}')  # expecting 1120
+    synville.build_a_park('Tzafon Yashan')  # expecting: "Tzafon Yashan neighborhood is not listed."
+    synville.build_a_house('Tzafon Yashan', 1, 1)  # expecting: "Tzafon Yashan neighborhood is not listed."
+    synville.ruin_a_neighborhood('Florentin')   # no output
+    synville.build_a_park('Florentin')  # expecting: "Florentin neighborhood is not listed."
+    print(f'Synville Tax is (expecting 1155): {synville.how_much_money()}')  # expecting 1155
+
+
+if __name__ == '__main__':
+    main()
