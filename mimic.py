@@ -36,10 +36,8 @@ class MyList:
         list_to_print = list_to_print + str(self.end_pointer.value) + ']'
         return list_to_print
 
+    # Utility function.
     def find_node(self, index):
-        """
-        Utility function.
-        """
         if (index > self.list_len - 1) or (index < 0):
             return None
         current_index = 0
@@ -96,7 +94,7 @@ class MyList:
             curr_index = 0
             min_value = self.start_pointer.value
             min_value_index = 0
-            while curr_node is not None:
+            while curr_node is not None:  # Search next min value.
                 if curr_node.value < min_value:
                     min_value = curr_node.value
                     min_value_index = curr_index
@@ -104,13 +102,13 @@ class MyList:
                 curr_index += 1
             node_to_append = self.find_node(min_value_index)
             previous_node = self.find_node(min_value_index - 1)
-            if temp_start_pointer is None:
+            if temp_start_pointer is None:  # For first node in new list, initialize start pointer.
                 temp_start_pointer = node_to_append
-            if temp_end_pointer is not None:
+            if temp_end_pointer is not None:  # Append current node to last node in new list.
                 temp_end_pointer.next_node = node_to_append
-            if previous_node is not None:
+            if previous_node is not None:  # Remove current node from original list.
                 previous_node.next_node = node_to_append.next_node
-            if min_value_index == 0:  # move start pointer if we remove the first node
+            if min_value_index == 0:  # Reinitialize original start pointer if we remove first node from original list.
                 self.start_pointer = node_to_append.next_node
             temp_end_pointer = node_to_append
             node_to_append.next_node = None
