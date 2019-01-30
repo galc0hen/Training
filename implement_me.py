@@ -1,4 +1,12 @@
+from sqlalchemy import *
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship
 import datetime as dt
+
+engine = create_engine('sqlite:///ip.db', echo=False)
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
 
 
 def index(data):
