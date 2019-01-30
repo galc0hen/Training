@@ -1,5 +1,5 @@
 from random import Random
-import ipaddr
+import ipaddress
 import datetime as dt
 
 from interface import Entry
@@ -16,7 +16,7 @@ rnd = Random(0)
 def _generate_dataset(number_of_ips, number_of_entries_per_ip):
     for ip_num in (rnd.randint(LOWEST_IP, HIGHEST_IP) for _ in range(number_of_ips)):
         for _ in range(number_of_entries_per_ip):
-            yield Entry(str(ipaddr.IPAddress(ip_num)), protocol=rnd.choice(PROTOCOLS),
+            yield Entry(str(ipaddress.IPv4Address(ip_num)), protocol=rnd.choice(PROTOCOLS),
                         timestamp=dt.datetime.fromordinal(rnd.randint(LOWEST_TIME, HIGHEST_TIME)))
 
 
