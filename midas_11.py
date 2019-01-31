@@ -20,7 +20,7 @@ class MyQuery:
         self.my_query_object = self.session.query(self.class_type)
 
     # Utility function.
-    def format_class_name(self, number_of_instances_in_class):
+    def _format_class_name(self, number_of_instances_in_class):
         parsed_class_name = str(self.class_type).split('.')[-1].split('\'')[0]
         if number_of_instances_in_class == 1:
             return parsed_class_name
