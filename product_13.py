@@ -5,7 +5,7 @@ Pointer = namedtuple('Pointer', ['curr_pointer', 'max_pointer'])  # Using namedt
 def _increase_pointers(pointers):
     # Restart pointer of right most iterable.
     pointers[-1] = Pointer(0, pointers[-1].max_pointer)
-    for i in range(len(pointers)-2, -1, -1):  # evaluate pointers starting from one before last, to first.
+    for i in range(len(pointers)-2, -1, -1):  # Evaluate pointers starting from one before last, to first.
         pointers[i] = Pointer(pointers[i].curr_pointer + 1, pointers[i].max_pointer)
         if pointers[i].curr_pointer < pointers[i].max_pointer or i == 0:  # Never restart the first pointer.
             break
