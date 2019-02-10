@@ -3,13 +3,14 @@ Pointer = namedtuple('Pointer', ['curr_pointer', 'max_pointer'])  # Using namedt
 
 
 def _increase_pointers(pointers):
-    # Restart pointer of right most iterable.
-    pointers[-1] = Pointer(0, pointers[-1].max_pointer)
-    for i in range(len(pointers)-2, -1, -1):  # Evaluate pointers starting from one before last, to first.
+    for i in range(len(pointers)-1, -1, -1):  # Evaluate pointers from right to left.
+        # Increase pointer.
         pointers[i] = Pointer(pointers[i].curr_pointer + 1, pointers[i].max_pointer)
-        if pointers[i].curr_pointer < pointers[i].max_pointer or i == 0:  # Never restart the first pointer.
+        # Check if pointer is out of scope.
+        # Never restart the first pointer.
+        if pointers[i].curr_pointer < pointers[i].max_pointer or i == 0:
             break
-        # If pointer is out of scope too, restart it and continue to increase the pointer before it.
+        # If pointer is out of scope, restart it.
         pointers[i] = Pointer(0, pointers[i].max_pointer)
 
 
@@ -32,11 +33,7 @@ def product(*args, repeat=1):
             result.append(args[i][curr_pointer])
         yield(tuple(result))
         result = []
-        # Move pointer of right most iterable.
-        pointers[-1] = Pointer(pointers[-1].curr_pointer + 1, pointers[-1].max_pointer)
-        # Check if pointer of right most iterable is out of scope.
-        if pointers[-1].curr_pointer >= pointers[-1].max_pointer:
-            _increase_pointers(pointers)
+        _increase_pointers(pointers)
 
 
 def main():

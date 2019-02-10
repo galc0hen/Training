@@ -1,28 +1,12 @@
-from collections import namedtuple
-Pointer = namedtuple('Pointer', ['curr_pointer', 'max_pointer'])  # Using namedtuple for readability.
-
-
-def _increase_pointers(pointers):
-    # Restart pointer of right most iterable.
-    pointers[-1] = Pointer(0, pointers[-1].max_pointer)
-    for i in range(len(pointers)-2, -1, -1):  # Evaluate pointers starting from one before last, to first.
-        pointers[i] = Pointer(pointers[i].curr_pointer + 1, pointers[i].max_pointer)
-        if pointers[i].curr_pointer < pointers[i].max_pointer or i == 0:  # Never restart the first pointer.
-            break
-        # If pointer is out of scope too, restart it and continue to increase the pointer before it.
-        pointers[i] = Pointer(0, pointers[i].max_pointer)
-
-
-def _adjust_args(args, repeat):
+def _adjust_args(args, num_of_repeats):
     new_args = []
-    for _ in range(repeat):
+    for _ in range(num_of_repeats):
         new_args.append(args[0])
     return new_args
 
 
-def helper_iterator(iterable):
-    for item in iterable:
-        yield item
+def _restart_iterator(iterators, args, iterator_pointer):
+    iterators[iterator_pointer] = iter(args[iterator_pointer])
 
 
 def product(*args, repeat=1):
@@ -30,21 +14,27 @@ def product(*args, repeat=1):
         args = _adjust_args(args, repeat)
     result = []
     # List of iterators correlates to given list of arguments.
-    iterators = [helper_iterator(iterable) for iterable in args]
-    while pointers[0].curr_pointer < pointers[0].max_pointer: # catch stopiteration
-        # yield next for each iterator to build solution
-        for i in range(len(pointers)):
-            curr_pointer = pointers[i].curr_pointer  # For readability.
-            result.append(args[i][curr_pointer])
-        yield(tuple(result))
-        result = []
-        # Move pointer of right most iterable.
-        # yield next for last iterator to catch stop iteration
-        #
-        pointers[-1] = Pointer(pointers[-1].curr_pointer + 1, pointers[-1].max_pointer)
-        # Check if pointer of right most iterable is out of scope.
-        if pointers[-1].curr_pointer >= pointers[-1].max_pointer:
-            _increase_pointers(pointers)
+    iterators = [iter(iterable) for iterable in args]
+    iterator_pointer = 0
+    while True:
+        try:
+            next_element = next(iterators[iterator_pointer])
+        except StopIteration:
+            if iterator_pointer == 0:  # Never restart first iterator.
+                break
+            else:
+                _restart_iterator(iterators, args, iterator_pointer)
+                iterator_pointer -= 1
+                continue
+        try:
+            result.pop(iterator_pointer)
+        except IndexError:
+            pass
+        result.insert(iterator_pointer, next_element)
+        iterator_pointer += 1
+        if iterator_pointer == len(iterators):
+            yield(tuple(result))
+            iterator_pointer -= 1
 
 
 def main():
